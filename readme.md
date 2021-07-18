@@ -1,6 +1,6 @@
 <h1 align="center">Big Integer</h1>
 
-<h3 align="center">A space efficient, arbitrary-sized integer integer library for C++</h3>
+<h3 align="center">A space efficient, arbitrary-sized integer library for C++</h3>
 
 ## Features
  - No other dependencies apart from C++ STL.
