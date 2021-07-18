@@ -23,23 +23,23 @@
  */
 #ifndef BIGINT_H
 #define BIGINT_H
-#include <vector>
-#include <cmath>
-#include <limits>
-#include <iostream>
-#include <bitset>
 #include <algorithm>
+#include <bitset>
 #include <cctype>
+#include <cmath>
+#include <iostream>
+#include <limits>
+#include <vector>
 
 class BigInt {
-private:
+   private:
     using word_t = unsigned long long;
     static constexpr word_t full_chunk = std::numeric_limits<word_t>::max();
     static constexpr size_t bit_per_chunk = 8 * sizeof(word_t);
     std::vector<word_t> data;
     bool default_bit = 0;
     bool negative = false;
-    
+
     // Remove leading empty block
     void trim() {
         while (data.back() == (full_chunk * default_bit)) data.pop_back();
@@ -62,10 +62,9 @@ private:
         return result;
     }
 
-public:
-
+   public:
     // Construct from integer
-    BigInt(long long x = 0) : data({(word_t)std::abs(x)}), default_bit(0), negative(x < 0) {};
+    BigInt(long long x = 0) : data({(word_t)std::abs(x)}), default_bit(0), negative(x < 0){};
 
     // Construct from string
     BigInt(std::string s) {
@@ -102,9 +101,7 @@ public:
         if (default_bit == 1) return "infinity";
         if (base == 2) {
             std::string result = "";
-            for (word_t i : data) {
-                result = std::bitset<bit_per_chunk>(i).to_string() + result;
-            }
+            for (word_t i : data) { result = std::bitset<bit_per_chunk>(i).to_string() + result; }
             result.erase(0, result.find_first_not_of('0'));
             if (negative) result = '-' + result;
             return result;
@@ -121,23 +118,21 @@ public:
 
     operator std::string() { return to_string(10); }
 
-    friend std::ostream& operator<<(std::ostream &out, const BigInt &x){
-	    out << x.to_string(10);
-	    return out;
+    friend std::ostream &operator<<(std::ostream &out, const BigInt &x) {
+        out << x.to_string(10);
+        return out;
     }
 
-    friend std::istream& operator>>(std::istream &in, BigInt &x){
-	    std::string temp;
+    friend std::istream &operator>>(std::istream &in, BigInt &x) {
+        std::string temp;
         in >> temp;
         x = BigInt(temp);
-	    return in;
+        return in;
     }
 
     BigInt operator~() {
         BigInt old = *this;
-        for (word_t &i : data) {
-            i = ~i;
-        }
+        for (word_t &i : data) { i = ~i; }
         default_bit = !default_bit;
         BigInt temp = *this;
         *this = old;
@@ -148,8 +143,10 @@ public:
         if (data.size() < x.data.size()) data.insert(data.end(), x.data.size() - data.size(), full_chunk * default_bit);
         default_bit = default_bit && x.default_bit;
         for (size_t i = 0; i < data.size(); i++) {
-            if (i >= x.data.size()) data[i] &= full_chunk * x.default_bit;
-            else data[i] &= x.data[i];
+            if (i >= x.data.size())
+                data[i] &= full_chunk * x.default_bit;
+            else
+                data[i] &= x.data[i];
         }
         trim();
         return *this;
@@ -159,8 +156,10 @@ public:
         if (data.size() < x.data.size()) data.insert(data.end(), x.data.size() - data.size(), full_chunk * default_bit);
         default_bit = default_bit || x.default_bit;
         for (size_t i = 0; i < data.size(); i++) {
-            if (i >= x.data.size()) data[i] |= full_chunk * x.default_bit;
-            else data[i] |= x.data[i];
+            if (i >= x.data.size())
+                data[i] |= full_chunk * x.default_bit;
+            else
+                data[i] |= x.data[i];
         }
         trim();
         return *this;
@@ -170,8 +169,10 @@ public:
         if (data.size() < x.data.size()) data.insert(data.end(), x.data.size() - data.size(), full_chunk * default_bit);
         default_bit = default_bit != x.default_bit;
         for (size_t i = 0; i < data.size(); i++) {
-            if (i >= x.data.size()) data[i] ^= full_chunk * x.default_bit;
-            else data[i] ^= x.data[i];
+            if (i >= x.data.size())
+                data[i] ^= full_chunk * x.default_bit;
+            else
+                data[i] ^= x.data[i];
         }
         trim();
         return *this;
@@ -207,7 +208,6 @@ public:
         trim();
         return *this;
     }
-
 
     BigInt operator&(BigInt x) {
         BigInt old = *this;
@@ -249,7 +249,6 @@ public:
         return temp;
     }
 
-
     bool operator<(BigInt x) {
         if (negative != x.negative) return negative;
         if (size() != x.size()) return (size() < x.size());
@@ -265,7 +264,8 @@ public:
 
     bool operator==(BigInt x) {
         if (default_bit != x.default_bit || negative != x.negative || size() != x.size()) return false;
-        for (size_t i = 0; i < data.size(); i++) if (data[i] != x.data[i]) return false;
+        for (size_t i = 0; i < data.size(); i++)
+            if (data[i] != x.data[i]) return false;
         return true;
     }
 
@@ -275,10 +275,7 @@ public:
 
     bool operator<=(BigInt x) { return !operator>(x); }
 
-
-    BigInt operator+() {
-        return *this;
-    }
+    BigInt operator+() { return *this; }
 
     BigInt operator-() {
         BigInt old = *this;
@@ -289,9 +286,9 @@ public:
     }
 
     BigInt operator+=(BigInt x) {
-        if (x.negative) return operator-=(-x); // x + -y = x - y
+        if (x.negative) return operator-=(-x);  // x + -y = x - y
         if (negative) {
-            *this = -(operator-() - x); // -x + y = -(x - y)
+            *this = -(operator-() - x);  // -x + y = -(x - y)
             return *this;
         }
 
@@ -313,21 +310,21 @@ public:
     }
 
     BigInt operator-=(BigInt x) {
-        if (x.negative) return operator+=(-x); // x - (-y) = x + y
+        if (x.negative) return operator+=(-x);  // x - (-y) = x + y
         if (negative) {
-            *this = -(operator-() + x); // -x -y = -(x + y)
+            *this = -(operator-() + x);  // -x -y = -(x + y)
             return *this;
         }
 
         if (operator<(x)) {
-            *this = -(x - *this); // x - y = -(y - x)
+            *this = -(x - *this);  // x - y = -(y - x)
             return *this;
         }
 
         while (x.size()) {
             BigInt borrow = operator~().operator&(x);
             operator^=(x);
-            x = borrow << 1; 
+            x = borrow << 1;
         }
         trim();
         return *this;
@@ -376,7 +373,7 @@ public:
             temp >>= 1;
             if (operator>=(x)) {
                 operator-=(x);
-                res|= temp;
+                res |= temp;
             }
         }
         res.trim();
@@ -398,7 +395,7 @@ public:
 
     BigInt operator++() { return operator+=(1); }
 
-    BigInt operator++(int) { 
+    BigInt operator++(int) {
         BigInt temp = *this;
         operator+=(1);
         return temp;
@@ -406,15 +403,13 @@ public:
 
     BigInt operator--() { return operator-=(1); }
 
-    BigInt operator--(int) { 
+    BigInt operator--(int) {
         BigInt temp = *this;
         operator-=(1);
         return temp;
     }
 };
 
-BigInt operator ""_N(const char* x, size_t size) {
-    return BigInt(std::string(x));
-}
+BigInt operator""_N(const char *x, size_t size) { return BigInt(std::string(x)); }
 
 #endif
