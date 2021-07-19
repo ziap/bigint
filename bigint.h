@@ -40,15 +40,11 @@ class BigInt {
     static constexpr size_t bit_per_chunk = 8 * sizeof(word_t);
     std::vector<word_t> data;
     bool default_bit = 0;
-    bool negative = false;
 
     // Remove leading empty block
     void trim() {
-        while (data.back() == (full_chunk * default_bit)) data.pop_back();
-        if (size() <= 0) {
-            negative = false;
-            data = {0};
-        }
+        while (data.back() == (full_chunk * default_bit) && data.size() > 1) data.pop_back();
+        if (data.size() <= 0) { data = {full_chunk * default_bit}; }
     }
 
     // The size of the bianry string representing the number
@@ -66,7 +62,12 @@ class BigInt {
 
    public:
     // Construct from integer
-    BigInt(long long x = 0) : data({(word_t)std::abs(x)}), default_bit(0), negative(x < 0){};
+    BigInt(long long x = 0) : data({(word_t)std::abs(x)}), default_bit(0) {
+        if (x < 0) {
+            *this = operator-();
+            trim();
+        }
+    };
 
     // Construct from string
     BigInt(std::string s) {
@@ -83,14 +84,13 @@ class BigInt {
             operator+=(std::stoull(buf));
             s.erase(0, std::min(18UL, s.length()));
         }
-        negative = is_neg;
+        if (is_neg) *this = operator-();
         trim();
     }
 
     // Copy-constructor
     BigInt(const BigInt &x) {
         default_bit = x.default_bit;
-        negative = x.negative;
         data = x.data;
         trim();
     }
@@ -99,14 +99,15 @@ class BigInt {
 
     // Convert to string with a base
     std::string to_string(bool binary = false) const {
+        bool is_neg = default_bit;
         BigInt temp = *this;
+        if (is_neg) temp = -temp;
         if (temp.size() <= 0) return "0";
-        if (default_bit == 1) return "infinity";
         if (binary) {
             std::string result = "";
-            for (word_t i : data) { result = std::bitset<bit_per_chunk>(i).to_string() + result; }
+            for (word_t i : temp.data) { result = std::bitset<bit_per_chunk>(i).to_string() + result; }
             result.erase(0, result.find_first_not_of('0'));
-            if (negative) result = '-' + result;
+            if (is_neg) result = '-' + result;
             return result;
         }
         BigInt old = *this;
@@ -120,7 +121,7 @@ class BigInt {
             temp = div_res.first;
         }
         result.erase(0, result.find_first_not_of('0'));
-        if (negative) result = '-' + result;
+        if (is_neg) result = '-' + result;
         return result;
     }
 
@@ -258,20 +259,20 @@ class BigInt {
     }
 
     bool operator<(BigInt x) {
-        if (negative != x.negative) return negative;
+        if (default_bit != x.default_bit) return default_bit;
         if (size() != x.size()) return (size() < x.size());
         return std::lexicographical_compare(data.rbegin(), data.rend(), x.data.rbegin(), x.data.rend(), std::less<word_t>());
     }
 
     bool operator>(BigInt x) {
-        if (negative != x.negative) return x.negative;
+        if (default_bit != x.default_bit) return x.default_bit;
         if (size() != x.size()) return (size() > x.size());
         return std::lexicographical_compare(data.rbegin(), data.rend(), x.data.rbegin(), x.data.rend(), std::greater<word_t>());
         return false;
     }
 
     bool operator==(BigInt x) {
-        if (default_bit != x.default_bit || negative != x.negative || size() != x.size()) return false;
+        if (default_bit != x.default_bit || default_bit != x.default_bit || size() != x.size()) return false;
         for (size_t i = 0; i < data.size(); i++)
             if (data[i] != x.data[i]) return false;
         return true;
@@ -286,16 +287,23 @@ class BigInt {
     BigInt operator+() { return *this; }
 
     BigInt operator-() {
+        if (operator==(0)) return *this;
         BigInt old = *this;
-        negative = !negative;
+        *this = operator~();
+        BigInt m = 1;
+        while (operator&(m).size()) {
+            operator^=(m);
+            m <<= 1;
+        }
+        operator^=(m);
         BigInt temp = *this;
         *this = old;
         return temp;
     }
 
     BigInt operator+=(BigInt x) {
-        if (x.negative) return operator-=(-x);  // x + -y = x - y
-        if (negative) {
+        if (x.default_bit) return operator-=(-x);  // x + -y = x - y
+        if (default_bit) {
             *this = -(operator-() - x);  // -x + y = -(x - y)
             return *this;
         }
@@ -318,8 +326,8 @@ class BigInt {
     }
 
     BigInt operator-=(BigInt x) {
-        if (x.negative) return operator+=(-x);  // x - (-y) = x + y
-        if (negative) {
+        if (x.default_bit) return operator+=(-x);  // x - (-y) = x + y
+        if (default_bit) {
             *this = -(operator-() + x);  // -x -y = -(x + y)
             return *this;
         }
@@ -352,16 +360,15 @@ class BigInt {
     BigInt operator*(BigInt x) {
         BigInt old = *this;
         BigInt res;
-        bool is_neg = (negative != x.negative);
-        res.negative = false;
-        x.negative = false;
-        negative = false;
+        bool is_neg = (default_bit != x.default_bit);
+        if (x.default_bit) x = -x;
+        if (default_bit) *this = operator-();
         while (x.size()) {
             if ((x & BigInt(1)).size()) res += *this;
             operator<<=(1);
             x >>= 1;
         }
-        res.negative = is_neg;
+        if (is_neg) res = -res;
         res.trim();
         *this = old;
         return res;
@@ -370,9 +377,9 @@ class BigInt {
     std::pair<BigInt, BigInt> divide(BigInt x) {
         BigInt old = *this;
         BigInt res(0), temp(1);
-        res.negative = (negative != x.negative);
-        negative = false;
-        x.negative = false;
+        bool is_neg = (default_bit != x.default_bit);
+        if (default_bit) *this = operator-();
+        if (x.default_bit) x = -x;
         while (operator>=(x)) {
             x <<= 1;
             temp <<= 1;
@@ -386,6 +393,7 @@ class BigInt {
             }
         }
         BigInt curr = *this;
+        if (is_neg) res = -res;
         res.trim();
         *this = old;
         return {res, curr};
