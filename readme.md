@@ -47,14 +47,13 @@ Output:
 
 500th fibonacci number
 ```cpp
-BigInt last = 0;
-BigInt current = 1;
+BigInt last = 0, current = 1;
 for (BigInt i = 2; i <= 500; i++) {
     BigInt next = last + current;
     last = current;
     current = next;
 }
-std::cout << current;
+std::cout << current << '\n';
 ```
 
 Output
