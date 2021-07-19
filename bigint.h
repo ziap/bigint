@@ -27,8 +27,10 @@
 #include <bitset>
 #include <cctype>
 #include <cmath>
+#include <cstdio>
 #include <iostream>
 #include <limits>
+#include <utility>
 #include <vector>
 
 class BigInt {
@@ -74,10 +76,12 @@ class BigInt {
             is_neg = true;
             s.erase(s.begin());
         }
-        for (char c : s) {
-            if (!std::isdigit(c)) throw std::invalid_argument("input string is not a number");
-            operator*=(10);
-            operator+=(c - '0');
+        s = std::string(18 - s.length() % 18, '0') + s;
+        while (!s.empty()) {
+            std::string buf = s.substr(0, std::min(18UL, s.length()));
+            operator*=(1000000000000000000);
+            operator+=(std::stoull(buf));
+            s.erase(0, std::min(18UL, s.length()));
         }
         negative = is_neg;
         trim();
@@ -94,12 +98,11 @@ class BigInt {
     // Destructor: compiler-generated
 
     // Convert to string with a base
-    std::string to_string(size_t base = 10) const {
+    std::string to_string(bool binary = false) const {
         BigInt temp = *this;
-        if (base > 10) throw std::out_of_range("base must be less than 10");
         if (temp.size() <= 0) return "0";
         if (default_bit == 1) return "infinity";
-        if (base == 2) {
+        if (binary) {
             std::string result = "";
             for (word_t i : data) { result = std::bitset<bit_per_chunk>(i).to_string() + result; }
             result.erase(0, result.find_first_not_of('0'));
@@ -109,17 +112,22 @@ class BigInt {
         BigInt old = *this;
         std::string result = "";
         while (temp.size()) {
-            result = std::to_string((temp % base).data[0]) + result;
-            temp /= base;
+            std::pair<BigInt, BigInt> div_res = temp.divide(1000000000000000000);
+            char buf[256];
+            std::snprintf(buf, 256, "%018lld", div_res.second.data[0]);
+            // std::cout << div_res.second.data[0] << '\n'; std::cin.get();
+            result = buf + result;
+            temp = div_res.first;
         }
+        result.erase(0, result.find_first_not_of('0'));
         if (negative) result = '-' + result;
         return result;
     }
 
-    operator std::string() { return to_string(10); }
+    operator std::string() { return to_string(); }
 
     friend std::ostream &operator<<(std::ostream &out, const BigInt &x) {
-        out << x.to_string(10);
+        out << x.to_string();
         return out;
     }
 
@@ -359,7 +367,8 @@ class BigInt {
         return res;
     }
 
-    BigInt operator/=(BigInt x) {
+    std::pair<BigInt, BigInt> divide(BigInt x) {
+        BigInt old = *this;
         BigInt res(0), temp(1);
         res.negative = (negative != x.negative);
         negative = false;
@@ -368,7 +377,7 @@ class BigInt {
             x <<= 1;
             temp <<= 1;
         }
-        while (temp > BigInt(0)) {
+        while (temp > BigInt(1)) {
             x >>= 1;
             temp >>= 1;
             if (operator>=(x)) {
@@ -376,20 +385,17 @@ class BigInt {
                 res |= temp;
             }
         }
+        BigInt curr = *this;
         res.trim();
-        *this = res;
-        return *this;
-    }
-
-    BigInt operator/(BigInt x) {
-        BigInt old = *this;
-        operator/=(x);
-        BigInt temp = *this;
         *this = old;
-        return temp;
+        return {res, curr};
     }
 
-    BigInt operator%(BigInt x) { return *this - operator/(x) * x; }
+    BigInt operator/=(BigInt x) { return operator=(operator/(x)); }
+
+    BigInt operator/(BigInt x) { return divide(x).first; }
+
+    BigInt operator%(BigInt x) { return divide(x).second; }
 
     BigInt operator%=(BigInt x) { return operator=(operator%(x)); }
 

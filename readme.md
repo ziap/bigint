@@ -7,7 +7,7 @@
  - Supports negative values.
  - Space efficient dynamic bitset based implementation.
  - Provides both arithmetic and **binary** operations.
- - Base conversion.
+ - Binary conversion.
 
 ## Usage
  Download [bigint.h](bigint.h) to your working directory and include it.
@@ -106,14 +106,14 @@ Output:
 2073089...(773 digits)
 ```
 
-## Base conversion
+## Binary conversion
 ```cpp
-BigInt::to_string(base);
+BigInt::to_string(1);
 ```
 
 Example
 ```
-"666182560353385381510864290614"_N.to_string(2);
+std::cout << "666182560353385381510864290614"_N.to_string(1) << '\n';
 ```
 
 Output:
