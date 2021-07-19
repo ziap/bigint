@@ -49,7 +49,7 @@ class BigInt {
 
     // The size of the bianry string representing the number
     size_t size() {
-        if (default_bit == 1) return std::numeric_limits<size_t>::max();
+        if (default_bit == 1) return -(operator-().size());
         if (data.empty()) return 0;
         size_t result = (data.size() - 1) * bit_per_chunk;
         size_t tmp = data.back();
