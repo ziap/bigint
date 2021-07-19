@@ -260,13 +260,11 @@ class BigInt {
 
     bool operator<(BigInt x) {
         if (default_bit != x.default_bit) return default_bit;
-        if (size() != x.size()) return (size() < x.size());
         return std::lexicographical_compare(data.rbegin(), data.rend(), x.data.rbegin(), x.data.rend(), std::less<word_t>());
     }
 
     bool operator>(BigInt x) {
         if (default_bit != x.default_bit) return x.default_bit;
-        if (size() != x.size()) return (size() > x.size());
         return std::lexicographical_compare(data.rbegin(), data.rend(), x.data.rbegin(), x.data.rend(), std::greater<word_t>());
         return false;
     }
@@ -398,6 +396,7 @@ class BigInt {
             curr = -curr;
         }
         res.trim();
+        curr.trim();
         *this = old;
         return {res, curr};
     }
