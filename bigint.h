@@ -116,7 +116,7 @@ class BigInt {
             if (x.data.size() == 1) out << x.data[0];
             else {
                 std::pair<BigInt, BigInt> div_res = x.divide(1000000000000000000);
-                out << div_res.first << std::setw(9) << std::setfill('0') << div_res.second.data[0];
+                out << div_res.first << std::setfill('0') << std::setw(18) << div_res.second.data[0];
             }
         }
         return out;
@@ -354,7 +354,7 @@ class BigInt {
         if (x.default_bit) x = -x;
         if (default_bit) *this = operator-();
         while (x > 0) {
-            if ((x & BigInt(1)).size()) res += *this;
+            if ((x & BigInt(1)) > 0) res += *this;
             operator<<=(1);
             x >>= 1;
         }
