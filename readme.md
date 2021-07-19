@@ -107,12 +107,12 @@ Output:
 
 ## Binary conversion
 ```cpp
-BigInt::to_string(1);
+BigInt::to_binary();
 ```
 
 Example
-```
-std::cout << "666182560353385381510864290614"_N.to_string(1) << '\n';
+```cpp
+std::cout << "666182560353385381510864290614"_N.to_binary() << '\n';
 ```
 
 Output:

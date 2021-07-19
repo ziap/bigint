@@ -28,6 +28,7 @@
 #include <cctype>
 #include <cmath>
 #include <cstdio>
+#include <iomanip>
 #include <iostream>
 #include <limits>
 #include <utility>
@@ -97,38 +98,27 @@ class BigInt {
 
     // Destructor: compiler-generated
 
-    // Convert to string with a base
-    std::string to_string(bool binary = false) const {
+    // Convert to binary
+    std::string to_binary() const {
         bool is_neg = default_bit;
         BigInt temp = *this;
         if (is_neg) temp = -temp;
-        if (temp.size() <= 0) return "0";
-        if (binary) {
-            std::string result = "";
-            for (word_t i : temp.data) { result = std::bitset<bit_per_chunk>(i).to_string() + result; }
-            result.erase(0, result.find_first_not_of('0'));
-            if (is_neg) result = '-' + result;
-            return result;
-        }
-        BigInt old = *this;
         std::string result = "";
-        while (temp > 0) {
-            std::pair<BigInt, BigInt> div_res = temp.divide(1000000000000000000);
-            char buf[256];
-            std::snprintf(buf, 256, "%018lld", div_res.second.data[0]);
-            // std::cout << div_res.second.data[0] << '\n'; std::cin.get();
-            result = buf + result;
-            temp = div_res.first;
-        }
+        for (word_t i : temp.data) { result = std::bitset<bit_per_chunk>(i).to_string() + result; }
         result.erase(0, result.find_first_not_of('0'));
         if (is_neg) result = '-' + result;
         return result;
     }
 
-    operator std::string() { return to_string(); }
-
-    friend std::ostream &operator<<(std::ostream &out, const BigInt &x) {
-        out << x.to_string();
+    friend std::ostream &operator<<(std::ostream &out, BigInt x) {
+        if (x.default_bit) out << '-' << -x;
+        else {
+            if (x.data.size() == 1) out << x.data[0];
+            else {
+                std::pair<BigInt, BigInt> div_res = x.divide(1000000000000000000);
+                out << div_res.first << std::setw(9) << std::setfill('0') << div_res.second.data[0];
+            }
+        }
         return out;
     }
 
