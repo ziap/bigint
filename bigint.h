@@ -393,7 +393,10 @@ class BigInt {
             }
         }
         BigInt curr = *this;
-        if (is_neg) res = -res;
+        if (is_neg) {
+            res = -res;
+            curr = -curr;
+        }
         res.trim();
         *this = old;
         return {res, curr};
