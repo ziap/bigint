@@ -49,7 +49,7 @@ class BigInt {
 
     // The size of the bianry string representing the number
     size_t size() {
-        if (default_bit == 1) return operator-().size();
+        if (default_bit == 1) return operator~().size();
         if (data.empty()) return 0;
         size_t result = (data.size() - 1) * bit_per_chunk;
         size_t tmp = data.back();
@@ -112,7 +112,7 @@ class BigInt {
         }
         BigInt old = *this;
         std::string result = "";
-        while (temp.size()) {
+        while (temp > 0) {
             std::pair<BigInt, BigInt> div_res = temp.divide(1000000000000000000);
             char buf[256];
             std::snprintf(buf, 256, "%018lld", div_res.second.data[0]);
@@ -260,11 +260,13 @@ class BigInt {
 
     bool operator<(BigInt x) {
         if (default_bit != x.default_bit) return default_bit;
+        if (size() != x.size()) return (size() < x.size());
         return std::lexicographical_compare(data.rbegin(), data.rend(), x.data.rbegin(), x.data.rend(), std::less<word_t>());
     }
 
     bool operator>(BigInt x) {
         if (default_bit != x.default_bit) return x.default_bit;
+        if (size() != x.size()) return (size() > x.size());
         return std::lexicographical_compare(data.rbegin(), data.rend(), x.data.rbegin(), x.data.rend(), std::greater<word_t>());
         return false;
     }
@@ -306,7 +308,7 @@ class BigInt {
             return *this;
         }
 
-        while (x.size()) {
+        while (x > 0) {
             BigInt carry = operator&(x);
             operator^=(x);
             x = (carry << 1);
@@ -335,7 +337,7 @@ class BigInt {
             return *this;
         }
 
-        while (x.size()) {
+        while (x > 0) {
             BigInt borrow = operator~().operator&(x);
             operator^=(x);
             x = borrow << 1;
@@ -361,7 +363,7 @@ class BigInt {
         bool is_neg = (default_bit != x.default_bit);
         if (x.default_bit) x = -x;
         if (default_bit) *this = operator-();
-        while (x.size()) {
+        while (x > 0) {
             if ((x & BigInt(1)).size()) res += *this;
             operator<<=(1);
             x >>= 1;
@@ -396,7 +398,6 @@ class BigInt {
             curr = -curr;
         }
         res.trim();
-        curr.trim();
         *this = old;
         return {res, curr};
     }
