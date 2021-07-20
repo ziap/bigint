@@ -6,7 +6,11 @@ from random import randint
 def random_digits(n):
     range_start = 10**(n-1)
     range_end = (10**n)-1
-    return randint(range_start, range_end)
+
+    rand = randint(range_start, range_end)
+    if randint(0, 1): rand = -rand
+
+    return rand
 
 def run_test(n, x, y):
     print('Running test', n)
@@ -18,7 +22,7 @@ def run_test(n, x, y):
 
     result = stdout.decode('utf-8').split()
 
-    expected = [str(i) for i in [x, y, ~x, ~y, x & y, x | y, x ^ y, x + y, x - y, x * y, x // y, x % y]]
+    expected = [str(i) for i in [x, y, ~x, ~y, x & y, x | y, x ^ y, x + y, x - y, x * y, int(x / y), x % y]]
 
     correct = True
 
@@ -34,10 +38,10 @@ def run_test(n, x, y):
         print('\033[91mTest failed')
         exit(1)
 
-    print("\033[0;0mTest {n} completed, took {sec:.2f} seconds".format(n = n, sec = time() - start_time))
+    print("\033[0;0mTest {n} passed after {sec:.2f} seconds".format(n = n, sec = time() - start_time))
     print()
 
 if __name__ == '__main__':
-    compile()
     for i in range(20):
         run_test(i + 1, random_digits(1000), random_digits(1000))
+    print("\033[92mAll tests passed!")
