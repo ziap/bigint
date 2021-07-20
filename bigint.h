@@ -62,6 +62,45 @@ class BigInt {
         return result;
     }
 
+    static BigInt karatsuba(BigInt x, BigInt y) {
+        bool is_neg = (x.default_bit != y.default_bit);
+        if (x.default_bit) x = -x;
+        if (y.default_bit) y = -y;
+
+        size_t n = std::max(x.data.size(), y.data.size());
+        if (n < 2) {
+            __uint128_t mul = __uint128_t(x.data[0]) * __uint128_t(y.data[0]);
+            BigInt result;
+            result.data = {word_t(mul), word_t(mul >> 64)};
+            result.trim();
+            return result;
+        }
+
+        n = (n + 1) >> 1;
+
+        BigInt a, b;
+        if (x.data.size() > n) {
+            a.data = std::vector<word_t>(x.data.begin(), x.data.begin() + n);
+            b.data = std::vector<word_t>(x.data.begin() + n, x.data.end());
+        } else
+            a.data = x.data;
+
+        BigInt c, d;
+        if (y.data.size() > n) {
+            c.data = std::vector<word_t>(y.data.begin(), y.data.begin() + n);
+            d.data = std::vector<word_t>(y.data.begin() + n, y.data.end());
+        } else
+            c.data = y.data;
+
+        BigInt ac = karatsuba(a, c);
+        BigInt bd = karatsuba(b, d);
+        BigInt abcd = karatsuba(a + b, c + d) - ac - bd;
+
+        BigInt result = ac + (abcd << (n << 6)) + (bd << (n << 7));
+        if (is_neg) result = -result;
+        return result;
+    }
+
    public:
     // Construct from integer
     BigInt(long long x = 0) : data({(word_t)std::abs(x)}), default_bit(0) {
@@ -389,23 +428,7 @@ class BigInt {
 
     BigInt operator*=(BigInt x) { return operator=(operator*(x)); }
 
-    // Russian peasant algorithm
-    BigInt operator*(BigInt x) {
-        BigInt old = *this;
-        BigInt res;
-        bool is_neg = (default_bit != x.default_bit);
-        if (x.default_bit) x = -x;
-        if (default_bit) *this = operator-();
-        while (x > 0) {
-            if ((x & BigInt(1)) > 0) res += *this;
-            operator<<=(1);
-            x >>= 1;
-        }
-        if (is_neg) res = -res;
-        res.trim();
-        *this = old;
-        return res;
-    }
+    BigInt operator*(BigInt x) { return karatsuba(*this, x); }
 
     std::pair<BigInt, BigInt> divide(BigInt x) {
         BigInt old = *this;
