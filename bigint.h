@@ -127,6 +127,17 @@ class BigInt {
     }
 
    public:
+
+    static BigInt ten_exp(size_t x) {
+        BigInt ten(10), res(1);
+        while (x) {
+            if (x & 1) res = res * ten;
+            ten *= ten;
+            x >>= 1;
+        }
+        return res;
+    }
+
     // Construct from integer
     BigInt(long long x = 0) : data({(word_t)std::abs(x)}), default_bit(0) {
         if (x < 0) *this = operator-();
@@ -140,12 +151,14 @@ class BigInt {
             is_neg = true;
             s.erase(s.begin());
         }
-        s = std::string(18 - s.length() % 18, '0') + s;
-        while (!s.empty()) {
-            std::string buf = s.substr(0, std::min(18UL, s.length()));
-            operator*=(1000000000000000000);
-            operator+=(std::stoull(buf));
-            s.erase(0, std::min(18UL, s.length()));
+        if (s.length() <= 18) operator+=(std::stoull(s));
+        else {
+            size_t m = (s.length() + 1) >> 1;
+            BigInt lo(s.substr(0, m));
+            BigInt hi(s.substr(m));
+            operator+=(lo);
+            operator*=(ten_exp(s.length() - m));
+            operator+=(hi);
         }
         if (is_neg) *this = operator-();
     }
