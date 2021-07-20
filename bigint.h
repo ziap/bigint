@@ -346,10 +346,34 @@ class BigInt {
             return *this;
         }
 
-        while (x > 0) {
-            BigInt borrow = operator~().operator&(x);
-            operator^=(x);
-            x = borrow << 1;
+        if (data.size() < x.data.size()) data.insert(data.end(), x.data.size() - data.size(), 0);
+        bool carry = 0;
+        for (size_t i = 0; i < data.size(); i++) {
+            if (i >= x.data.size()) {
+                if (carry) {
+                    if (data[i] == 0) data[i] = full_chunk;
+                    else {
+                        data[i] -= carry;
+                        carry = 0;
+                    }
+                } else
+                    break;
+            } else {
+                bool next_carry = 0;
+                if (data[i] < x.data[i]) {
+                    next_carry = 1;
+                    data[i] += (full_chunk - x.data[i] + 1);
+                } else
+                    data[i] -= x.data[i];
+                if (carry) {
+                    if (data[i] == 0) {
+                        data[i] = full_chunk;
+                        next_carry = 1;
+                    } else
+                        data[i] -= carry;
+                }
+                carry = next_carry;
+            }
         }
         trim();
         return *this;
