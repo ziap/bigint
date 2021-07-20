@@ -101,13 +101,35 @@ class BigInt {
         return result;
     }
 
+    std::pair<BigInt, BigInt> divide(BigInt x) {
+        BigInt old = *this;
+        BigInt res(0), temp(1);
+        bool is_neg = (default_bit != x.default_bit);
+        if (default_bit) *this = operator-();
+        if (x.default_bit) x = -x;
+        while (operator>=(x)) {
+            x <<= 1;
+            temp <<= 1;
+        }
+        while (temp > BigInt(1)) {
+            x >>= 1;
+            temp >>= 1;
+            if (operator>=(x)) {
+                operator-=(x);
+                res |= temp;
+            }
+        }
+        BigInt curr = *this;
+        if (is_neg) res = -res;
+        if (old.default_bit) curr = -curr;
+        *this = old;
+        return {res, curr};
+    }
+
    public:
     // Construct from integer
     BigInt(long long x = 0) : data({(word_t)std::abs(x)}), default_bit(0) {
-        if (x < 0) {
-            *this = operator-();
-            trim();
-        }
+        if (x < 0) *this = operator-();
     };
 
     // Construct from string
@@ -126,7 +148,6 @@ class BigInt {
             s.erase(0, std::min(18UL, s.length()));
         }
         if (is_neg) *this = operator-();
-        trim();
     }
 
     // Copy-constructor
@@ -430,32 +451,6 @@ class BigInt {
 
     BigInt operator*(BigInt x) { return karatsuba(*this, x); }
 
-    std::pair<BigInt, BigInt> divide(BigInt x) {
-        BigInt old = *this;
-        BigInt res(0), temp(1);
-        bool is_neg = (default_bit != x.default_bit);
-        if (default_bit) *this = operator-();
-        if (x.default_bit) x = -x;
-        while (operator>=(x)) {
-            x <<= 1;
-            temp <<= 1;
-        }
-        while (temp > BigInt(1)) {
-            x >>= 1;
-            temp >>= 1;
-            if (operator>=(x)) {
-                operator-=(x);
-                res |= temp;
-            }
-        }
-        BigInt curr = *this;
-        if (is_neg) res = -res;
-        if (old.default_bit) curr = -curr;
-        res.trim();
-        *this = old;
-        return {res, curr};
-    }
-
     BigInt operator/=(BigInt x) { return operator=(operator/(x)); }
 
     BigInt operator/(BigInt x) { return divide(x).first; }
@@ -475,7 +470,6 @@ class BigInt {
             }
         }
         if (carry) *this = 0;
-        trim();
         return *this;
     }
 
@@ -496,7 +490,6 @@ class BigInt {
             }
         }
         if (carry) *this = -1;
-        trim();
         return *this;
     }
 
