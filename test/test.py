@@ -1,7 +1,8 @@
-from subprocess import Popen, PIPE
-from time import time
 from os import system
 from random import randint
+from subprocess import Popen, PIPE
+from time import time
+
 
 def random_digits(n):
     range_start = 10**(n-1)
@@ -12,13 +13,15 @@ def random_digits(n):
 
     return rand
 
+
 def run_test(n, x, y):
     print('Running test', n)
     start_time = time()
 
     process = Popen(['./runner'], stdin=PIPE, stdout=PIPE)
-    process.stdin.write('{num1} {num2}\n'.format(num1 = x, num2 = y).encode('utf-8'))
+    process.stdin.write('{} {}\n'.format(x, y).encode('utf-8'))
     stdout, stderr = process.communicate()
+    process.kill()
 
     result = stdout.decode('utf-8').split()
 
@@ -28,18 +31,17 @@ def run_test(n, x, y):
 
     for i in range(len(expected)):
         if result[i] == expected[i]: print('✔️ ', '\033[92mCorrect!')
-        else: 
-            print('❌', '\033[91mExpected: {exp}\n   Found:    {res}'.format(exp = expected[i], res = result[i]))
+        else:
+            print('❌', '\033[91mExpected: {}\n   Found:    {}'.format(expected[i], result[i]))
             correct = False
 
-    process.kill()
-
-    if not correct: 
+    if not correct:
         print('\033[91mTest failed')
         exit(1)
 
-    print("\033[0;0mTest {n} passed after {sec:.2f} seconds".format(n = n, sec = time() - start_time))
+    print("\033[0;0mTest {} passed after {:.2f} seconds".format(n, time() - start_time))
     print()
+
 
 if __name__ == '__main__':
     for i in range(20):
