@@ -17,7 +17,9 @@ jobs:
   Unit-test-Ubuntu:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
-
+    defaults:
+      run:
+        working-directory: ./test
     steps:
       - name: Set up Python 3.7
         uses: actions/setup-python@v1
