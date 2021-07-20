@@ -22,7 +22,7 @@ def run_test(n, x, y):
 
     result = stdout.decode('utf-8').split()
 
-    expected = [str(i) for i in [x, y, ~x, ~y, x & y, x | y, x ^ y, x + y, x - y, x * y, int(x / y), x % y]]
+    expected = [str(i) for i in [x, y, ~x, ~y, x & y, x | y, x ^ y, x + y, x - y, x * y, int(x / y), x % y, x > y, x < y, x >= y, x <= y]]
 
     correct = True
 

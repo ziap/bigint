@@ -39,6 +39,7 @@ class BigInt {
     using word_t = unsigned long long;
     static constexpr word_t full_chunk = std::numeric_limits<word_t>::max();
     static constexpr size_t bit_per_chunk = 8 * sizeof(word_t);
+
     std::vector<word_t> data;
     bool default_bit = 0;
 
@@ -50,7 +51,7 @@ class BigInt {
 
     // The size of the bianry string representing the number
     size_t size() {
-        if (default_bit == 1) return operator~().size();
+        if (default_bit == 1) return operator-().size();
         if (data.empty()) return 0;
         size_t result = (data.size() - 1) * bit_per_chunk;
         size_t tmp = data.back();
@@ -250,15 +251,16 @@ class BigInt {
 
     bool operator<(BigInt x) {
         if (default_bit != x.default_bit) return default_bit;
-        if (size() != x.size()) return (size() < x.size());
+        if (default_bit) return operator-().operator>(-x);
+        if (data.size() != x.data.size()) return (data.size() < x.data.size());
         return std::lexicographical_compare(data.rbegin(), data.rend(), x.data.rbegin(), x.data.rend(), std::less<word_t>());
     }
 
     bool operator>(BigInt x) {
         if (default_bit != x.default_bit) return x.default_bit;
-        if (size() != x.size()) return (size() > x.size());
+        if (default_bit) return operator-().operator<(-x);
+        if (data.size() != x.data.size()) return (data.size() > x.data.size());
         return std::lexicographical_compare(data.rbegin(), data.rend(), x.data.rbegin(), x.data.rend(), std::greater<word_t>());
-        return false;
     }
 
     bool operator==(BigInt x) {
@@ -280,12 +282,7 @@ class BigInt {
         if (operator==(0)) return *this;
         BigInt old = *this;
         *this = operator~();
-        BigInt m = 1;
-        while (operator&(m).size()) {
-            operator^=(m);
-            m <<= 1;
-        }
-        operator^=(m);
+        operator++();
         BigInt temp = *this;
         *this = old;
         return temp;
@@ -298,11 +295,36 @@ class BigInt {
             return *this;
         }
 
-        while (x > 0) {
-            BigInt carry = operator&(x);
-            operator^=(x);
-            x = (carry << 1);
+        if (data.size() < x.data.size()) data.insert(data.end(), x.data.size() - data.size(), 0);
+        bool carry = 0;
+        for (size_t i = 0; i < data.size(); i++) {
+            if (i >= x.data.size()) {
+                if (carry) {
+                    if (data[i] == full_chunk) data[i] = 0;
+                    else {
+                        data[i] += carry;
+                        carry = 0;
+                    }
+                }
+                else break;
+            } else {
+                bool next_carry = 0;
+                if (full_chunk - x.data[i] < data[i]) {
+                    next_carry = 1;
+                    data[i] -= (full_chunk - x.data[i] + 1);
+                }
+                else data[i] += x.data[i];
+                if (carry) {
+                    if (data[i] == full_chunk) {
+                        data[i] = 0;
+                        next_carry = 1;
+                    }
+                    else data[i] += carry;
+                }
+                carry = next_carry;
+            }
         }
+        if (carry) data.push_back(1);
         trim();
         return *this;
     }
@@ -398,19 +420,45 @@ class BigInt {
 
     BigInt operator%=(BigInt x) { return operator=(operator%(x)); }
 
-    BigInt operator++() { return operator+=(1); }
+    BigInt operator++() {
+        bool carry = 1;
+        for (word_t &i : data) {
+            if (i == full_chunk) i = 0;
+            else {
+                i++;
+                carry = 0;
+                break;
+            }
+        }
+        if (carry) *this = 0;
+        trim();
+        return *this;
+    }
 
     BigInt operator++(int) {
         BigInt temp = *this;
-        operator+=(1);
+        operator++();
         return temp;
     }
 
-    BigInt operator--() { return operator-=(1); }
+    BigInt operator--() {
+        bool carry = 1;
+        for (word_t &i : data) {
+            if (i == 0) i = full_chunk;
+            else {
+                i--;
+                carry = 0;
+                break;
+            }
+        }
+        if (carry) *this = -1;
+        trim();
+        return *this;
+    }
 
     BigInt operator--(int) {
         BigInt temp = *this;
-        operator-=(1);
+        operator--();
         return temp;
     }
 };

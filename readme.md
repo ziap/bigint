@@ -7,8 +7,8 @@
 
 ## Features
  - No other dependencies apart from C++ STL.
- - Supports negative values.
- - Space efficient dynamic bitset based implementation with 2's complement representation for negative values.
+ - Space efficient dynamic bitset based implementation.
+ - Two's complement representation for negative values.
  - Provides both arithmetic and **binary** operations.
  - Binary conversion.
 
