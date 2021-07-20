@@ -2,6 +2,9 @@
 
 <h3 align="center">A space efficient, arbitrary-sized integer library for C++</h3>
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Unit test](https://github.com/ziap/bigint/actions/workflows/main.yml/badge.svg)](https://github.com/ziap/bigint/actions/workflows/main.yml)
+
 ## Features
  - No other dependencies apart from C++ STL.
  - Supports negative values.
