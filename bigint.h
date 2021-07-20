@@ -143,8 +143,7 @@ class BigInt {
         if (data.size() < x.data.size()) data.insert(data.end(), x.data.size() - data.size(), full_chunk * default_bit);
         default_bit = default_bit && x.default_bit;
         for (size_t i = 0; i < data.size(); i++) {
-            if (i >= x.data.size())
-                data[i] &= full_chunk * x.default_bit;
+            if (i >= x.data.size()) data[i] &= full_chunk * x.default_bit;
             else
                 data[i] &= x.data[i];
         }
@@ -156,8 +155,7 @@ class BigInt {
         if (data.size() < x.data.size()) data.insert(data.end(), x.data.size() - data.size(), full_chunk * default_bit);
         default_bit = default_bit || x.default_bit;
         for (size_t i = 0; i < data.size(); i++) {
-            if (i >= x.data.size())
-                data[i] |= full_chunk * x.default_bit;
+            if (i >= x.data.size()) data[i] |= full_chunk * x.default_bit;
             else
                 data[i] |= x.data[i];
         }
@@ -169,8 +167,7 @@ class BigInt {
         if (data.size() < x.data.size()) data.insert(data.end(), x.data.size() - data.size(), full_chunk * default_bit);
         default_bit = default_bit != x.default_bit;
         for (size_t i = 0; i < data.size(); i++) {
-            if (i >= x.data.size())
-                data[i] ^= full_chunk * x.default_bit;
+            if (i >= x.data.size()) data[i] ^= full_chunk * x.default_bit;
             else
                 data[i] ^= x.data[i];
         }
@@ -305,21 +302,21 @@ class BigInt {
                         data[i] += carry;
                         carry = 0;
                     }
-                }
-                else break;
+                } else
+                    break;
             } else {
                 bool next_carry = 0;
                 if (full_chunk - x.data[i] < data[i]) {
                     next_carry = 1;
                     data[i] -= (full_chunk - x.data[i] + 1);
-                }
-                else data[i] += x.data[i];
+                } else
+                    data[i] += x.data[i];
                 if (carry) {
                     if (data[i] == full_chunk) {
                         data[i] = 0;
                         next_carry = 1;
-                    }
-                    else data[i] += carry;
+                    } else
+                        data[i] += carry;
                 }
                 carry = next_carry;
             }
