@@ -49,22 +49,16 @@ class BigInt {
         if (data.size() <= 0) { data = {full_chunk * default_bit}; }
     }
 
-    // Russian peasant multiplication algorithm (Working)
-    static BigInt multiply(BigInt x, BigInt y) {
-        bool is_neg = (x.default_bit != y.default_bit);
-        if (x.default_bit) x = -x;
-        if (y.default_bit) y = -y;
-
-        BigInt res = 0;
-
-        while (y > 0) {
-            if ((y & 1) > 0) res += x;
-            x <<= 1;
-            y >>= 1;
+    // Single digit multiplication (x must be unsigned)
+    static BigInt multiply(BigInt x, word_t y) {
+        word_t carry = 0;
+        for (word_t &i : x.data) {
+            __uint128_t mul = __uint128_t(i) * __uint128_t(y) + __uint128_t(carry);
+            i = mul;
+            carry = (mul >> 64);
         }
-
-        if (is_neg) res = -res;
-        return res;
+        if (carry) x.data.push_back(carry);
+        return x;
     }
 
     // Karatsuba multiplication algorithm (Experimental)
@@ -75,38 +69,35 @@ class BigInt {
 
         BigInt res = 0;
 
-        size_t n = std::max(x.data.size(), y.data.size());
-        if (n < 2) {
-            __uint128_t mul = __uint128_t(x.data[0]) * __uint128_t(y.data[0]);
-            BigInt result;
-            result.data = {word_t(mul), word_t(mul >> 64)};
-            result.trim();
-            return result;
+        if (x.data.size() == 1) res = multiply(y, x.data[0]);
+        else if (y.data.size() == 1) res = multiply(x, y.data[0]);
+        else {
+            size_t n = std::max(x.data.size(), y.data.size());
+
+            n = (n + 1) >> 1;
+
+            BigInt a, b;
+            if (x.data.size() > n) {
+                a.data = std::vector<word_t>(x.data.begin(), x.data.begin() + n);
+                b.data = std::vector<word_t>(x.data.begin() + n, x.data.end());
+            } else
+                a.data = x.data;
+
+            BigInt c, d;
+            if (y.data.size() > n) {
+                c.data = std::vector<word_t>(y.data.begin(), y.data.begin() + n);
+                d.data = std::vector<word_t>(y.data.begin() + n, y.data.end());
+            } else
+                c.data = y.data;
+
+            BigInt ac = karatsuba(a, c);
+            BigInt bd = karatsuba(b, d);
+            BigInt abcd = karatsuba(a + b, c + d) - ac - bd;
+
+            res = ac + (abcd << (n << 6)) + (bd << (n << 7));   
         }
-
-        n = (n + 1) >> 1;
-
-        BigInt a, b;
-        if (x.data.size() > n) {
-            a.data = std::vector<word_t>(x.data.begin(), x.data.begin() + n);
-            b.data = std::vector<word_t>(x.data.begin() + n, x.data.end());
-        } else
-            a.data = x.data;
-
-        BigInt c, d;
-        if (y.data.size() > n) {
-            c.data = std::vector<word_t>(y.data.begin(), y.data.begin() + n);
-            d.data = std::vector<word_t>(y.data.begin() + n, y.data.end());
-        } else
-            c.data = y.data;
-
-        BigInt ac = karatsuba(a, c);
-        BigInt bd = karatsuba(b, d);
-        BigInt abcd = karatsuba(a + b, c + d) - ac - bd;
-
-        BigInt result = ac + (abcd << (n << 6)) + (bd << (n << 7));
-        if (is_neg) result = -result;
-        return result;
+        if (is_neg) res = -res;
+        return res;
     }
 
     std::pair<BigInt, BigInt> divide(BigInt x) {
@@ -488,7 +479,7 @@ class BigInt {
 
     BigInt operator*=(BigInt x) { return operator=(operator*(x)); }
 
-    BigInt operator*(BigInt x) { return multiply(*this, x); }
+    BigInt operator*(BigInt x) { return karatsuba(*this, x); }
 
     BigInt operator/=(BigInt x) { return operator=(operator/(x)); }
 
