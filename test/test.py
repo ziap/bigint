@@ -44,6 +44,6 @@ def run_test(n, x, y):
 
 
 if __name__ == '__main__':
-    for i in range(20):
+    for i in range(200):
         run_test(i + 1, random_digits(1000), random_digits(1000))
     print("\033[92mAll tests passed!")

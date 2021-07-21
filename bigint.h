@@ -49,19 +49,6 @@ class BigInt {
         if (data.size() <= 0) { data = {full_chunk * default_bit}; }
     }
 
-    // The size of the bianry string representing the number
-    size_t size() {
-        if (default_bit == 1) return operator-().size();
-        if (data.empty()) return 0;
-        size_t result = (data.size() - 1) * bit_per_chunk;
-        size_t tmp = data.back();
-        while (tmp > 0) {
-            tmp >>= 1;
-            result++;
-        }
-        return result;
-    }
-
     static BigInt karatsuba(BigInt x, BigInt y) {
         bool is_neg = (x.default_bit != y.default_bit);
         if (x.default_bit) x = -x;
@@ -126,6 +113,19 @@ class BigInt {
         return {res, curr};
     }
 
+    // The size of the bianry string representing the number
+    size_t size() {
+        if (default_bit == 1) return operator-().size();
+        if (data.empty()) return 0;
+        size_t result = (data.size() - 1) * bit_per_chunk;
+        size_t tmp = data.back();
+        while (tmp > 0) {
+            tmp >>= 1;
+            result++;
+        }
+        return result;
+    }
+
    public:
 
     // 10^x = 5^x << x
@@ -187,15 +187,17 @@ class BigInt {
         return result;
     }
 
+    std::string to_string() {
+        if (default_bit) return std::string("-") + operator-().to_string();
+        if (data.size() == 1) return std::to_string(data[0]);
+        size_t m = (size_t(double(size()) / log2(10) + 1) + 1) >> 1;
+        std::pair<BigInt, BigInt> div_res = divide(ten_exp(m));
+        std::string lo = div_res.second.to_string();
+        return div_res.first.to_string() + std::string(m - lo.length(), '0') + lo;
+    }
+
     friend std::ostream &operator<<(std::ostream &out, BigInt x) {
-        if (x.default_bit) out << '-' << -x;
-        else {
-            if (x.data.size() == 1) out << x.data[0];
-            else {
-                std::pair<BigInt, BigInt> div_res = x.divide(1000000000000000000);
-                out << div_res.first << std::setfill('0') << std::setw(18) << div_res.second.data[0];
-            }
-        }
+        out << x.to_string() << '\n';
         return out;
     }
 
