@@ -38,7 +38,6 @@ class BigInt {
    private:
     using word_t = unsigned long long;
     static constexpr word_t full_chunk = std::numeric_limits<word_t>::max();
-    static constexpr size_t bit_per_chunk = 8 * sizeof(word_t);
 
     std::vector<word_t> data;
     bool default_bit = 0;
@@ -70,7 +69,8 @@ class BigInt {
         BigInt res = 0;
 
         if (x.data.size() == 1) res = multiply(y, x.data[0]);
-        else if (y.data.size() == 1) res = multiply(x, y.data[0]);
+        else if (y.data.size() == 1)
+            res = multiply(x, y.data[0]);
         else {
             size_t n = std::max(x.data.size(), y.data.size());
 
@@ -94,7 +94,7 @@ class BigInt {
             BigInt bd = karatsuba(b, d);
             BigInt abcd = karatsuba(a + b, c + d) - ac - bd;
 
-            res = ac + (abcd << (n << 6)) + (bd << (n << 7));   
+            res = ac + (abcd << (n << 6)) + (bd << (n << 7));
         }
         if (is_neg) res = -res;
         return res;
@@ -129,7 +129,7 @@ class BigInt {
     size_t size() {
         if (default_bit == 1) return operator-().size();
         if (data.empty()) return 0;
-        size_t result = (data.size() - 1) * bit_per_chunk;
+        size_t result = (data.size() - 1) << 6;
         size_t tmp = data.back();
         while (tmp > 0) {
             tmp >>= 1;
@@ -139,9 +139,8 @@ class BigInt {
     }
 
    public:
-
     // 10^x = 5^x << x
-    // 5^x is calculated using binary exponetiation
+    // 5^x is calculated using binary exponentiation
     static BigInt ten_exp(size_t x) {
         size_t shift = x;
         BigInt five(5), res(1);
@@ -193,12 +192,13 @@ class BigInt {
         BigInt temp = *this;
         if (is_neg) temp = -temp;
         std::string result = "";
-        for (word_t i : temp.data) { result = std::bitset<bit_per_chunk>(i).to_string() + result; }
+        for (word_t i : temp.data) { result = std::bitset<64>(i).to_string() + result; }
         result.erase(0, result.find_first_not_of('0'));
         if (is_neg) result = '-' + result;
         return result;
     }
 
+    // Convert to decimal
     std::string to_string() {
         if (default_bit) return std::string("-") + operator-().to_string();
         if (data.size() == 1) return std::to_string(data[0]);
@@ -208,11 +208,13 @@ class BigInt {
         return div_res.first.to_string() + std::string(m - lo.length(), '0') + lo;
     }
 
+    // Istream operator
     friend std::ostream &operator<<(std::ostream &out, BigInt x) {
         out << x.to_string() << '\n';
         return out;
     }
 
+    // Ostream operator
     friend std::istream &operator>>(std::istream &in, BigInt &x) {
         std::string temp;
         in >> temp;
@@ -220,6 +222,7 @@ class BigInt {
         return in;
     }
 
+    // Flip all bits
     BigInt operator~() {
         BigInt old = *this;
         for (word_t &i : data) { i = ~i; }
@@ -266,13 +269,13 @@ class BigInt {
     }
 
     BigInt operator<<=(size_t x) {
-        size_t shift = x / bit_per_chunk;
-        size_t offset = x % bit_per_chunk;
+        size_t shift = x >> 6;
+        size_t offset = x & 63;
         data.insert(data.begin(), shift, 0);
         if (!offset) return *this;
         word_t carry = 0;
         for (word_t &i : data) {
-            word_t new_carry = i >> (bit_per_chunk - offset);
+            word_t new_carry = i >> (64 - offset);
             i <<= offset;
             i |= carry;
             carry = new_carry;
@@ -283,15 +286,15 @@ class BigInt {
     }
 
     BigInt operator>>=(size_t x) {
-        size_t shift = x / bit_per_chunk;
-        size_t offset = x % bit_per_chunk;
+        size_t shift = x >> 6;
+        size_t offset = x & 63;
         data.erase(data.begin(), data.begin() + shift);
         for (size_t i = 0; i < data.size(); i++) {
-            word_t carry = data[i] << (bit_per_chunk - offset);
+            word_t carry = data[i] << (64 - offset);
             data[i] >>= offset;
             if (i) data[i - 1] |= carry;
         }
-        data.back() |= ((full_chunk * default_bit) << (bit_per_chunk - offset));
+        data.back() |= ((full_chunk * default_bit) << (64 - offset));
         trim();
         return *this;
     }
@@ -365,6 +368,7 @@ class BigInt {
 
     BigInt operator+() { return *this; }
 
+    // Two's complement representation
     BigInt operator-() {
         if (operator==(0)) return *this;
         BigInt old = *this;
