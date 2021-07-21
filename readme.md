@@ -6,6 +6,7 @@
 [![Unit test](https://github.com/ziap/bigint/actions/workflows/main.yml/badge.svg)](https://github.com/ziap/bigint/actions/workflows/main.yml)
 
 ## Features
+
  - No other dependencies apart from C++ STL.
  - Space efficient dynamic bitset based implementation.
  - Two's complement representation for negative values.
@@ -13,6 +14,7 @@
  - Binary conversion.
 
 ## Usage
+
  Download [bigint.h](bigint.h) to your working directory and include it.
 
 ### Construction
@@ -109,6 +111,7 @@ Output:
 ```
 
 ## Binary conversion
+
 ```cpp
 BigInt::to_binary();
 ```
@@ -122,4 +125,11 @@ Output:
 ```
 1000011010001000110101001100011000000101101011010100100001000110011000001110111101011100001100110110
 ```
+
+## In development
+
+ - Add single digit (base 2^64) multiplication and division for faster base conversion.
+ - Improve Karatsuba algorithm.
+ - Use a faster division algorithm than the current binary/school algorithm.
+ - Add hexademical, octal conversion and binary input.
 
