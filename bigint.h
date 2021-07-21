@@ -128,14 +128,17 @@ class BigInt {
 
    public:
 
+    // 10^x = 5^x << x
+    // 5^x is calculated using binary exponetiation
     static BigInt ten_exp(size_t x) {
-        BigInt ten(10), res(1);
+        size_t shift = x;
+        BigInt five(5), res(1);
         while (x) {
-            if (x & 1) res = res * ten;
-            ten *= ten;
+            if (x & 1) res = res * five;
+            five *= five;
             x >>= 1;
         }
-        return res;
+        return (res << shift);
     }
 
     // Construct from integer
