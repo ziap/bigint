@@ -36,7 +36,7 @@ x = "9462362647"_N;
 x = "-9462362647"_N;
 ```
 
-## Arithmetic operations examples
+### Arithmetic operations examples
 
 Factorial of 100
 ```cpp
@@ -66,7 +66,7 @@ Output
 1394232...(105 digits)
 ```
 
-## Binary operations examples
+### Binary operations examples
 
 Popcount (count number of set bit)
 ```cpp
@@ -110,7 +110,7 @@ Output:
 2073089...(773 digits)
 ```
 
-## Binary conversion
+### Binary conversion
 
 ```cpp
 BigInt::to_binary();
