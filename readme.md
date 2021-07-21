@@ -128,8 +128,7 @@ Output:
 
 ## In development
 
- - Add single digit (base 2^64) multiplication and division for faster base conversion. ![50%](https://progress-bar.dev/50)
- - Improve Karatsuba algorithm. ![100%](https://progress-bar.dev/100)
- - Use a faster division algorithm than the current binary/school algorithm. ![0%](https://progress-bar.dev/0)
- - Add hexademical, octal conversion and binary input. ![0%](https://progress-bar.dev/0)
+ - ![50%](https://progress-bar.dev/50) Add single digit (base 2^64) multiplication and division for faster base conversion.
+ - ![0%](https://progress-bar.dev/0) Use a faster division algorithm than the current binary/school algorithm. 
+ - ![0%](https://progress-bar.dev/0) Add hexademical, octal conversion and binary input.
 
