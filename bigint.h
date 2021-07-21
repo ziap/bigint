@@ -49,10 +49,31 @@ class BigInt {
         if (data.size() <= 0) { data = {full_chunk * default_bit}; }
     }
 
+    // Russian peasant multiplication algorithm (Working)
+    static BigInt multiply(BigInt x, BigInt y) {
+        bool is_neg = (x.default_bit != y.default_bit);
+        if (x.default_bit) x = -x;
+        if (y.default_bit) y = -y;
+
+        BigInt res = 0;
+
+        while (y > 0) {
+            if ((y & 1) > 0) res += x;
+            x <<= 1;
+            y >>= 1;
+        }
+
+        if (is_neg) res = -res;
+        return res;
+    }
+
+    // Karatsuba multiplication algorithm (Experimental)
     static BigInt karatsuba(BigInt x, BigInt y) {
         bool is_neg = (x.default_bit != y.default_bit);
         if (x.default_bit) x = -x;
         if (y.default_bit) y = -y;
+
+        BigInt res = 0;
 
         size_t n = std::max(x.data.size(), y.data.size());
         if (n < 2) {
@@ -467,7 +488,7 @@ class BigInt {
 
     BigInt operator*=(BigInt x) { return operator=(operator*(x)); }
 
-    BigInt operator*(BigInt x) { return karatsuba(*this, x); }
+    BigInt operator*(BigInt x) { return multiply(*this, x); }
 
     BigInt operator/=(BigInt x) { return operator=(operator/(x)); }
 
