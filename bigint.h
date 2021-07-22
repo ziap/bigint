@@ -50,6 +50,7 @@ class BigInt {
 
     // Single digit multiplication (x must be unsigned)
     static BigInt multiply(BigInt x, word_t y) {
+        if (y == 0) return 0;
         word_t carry = 0;
         for (word_t &i : x.data) {
             __uint128_t mul = __uint128_t(i) * __uint128_t(y) + __uint128_t(carry);
@@ -209,17 +210,28 @@ class BigInt {
     }
 
     // Istream operator
-    friend std::ostream &operator<<(std::ostream &out, BigInt x) {
-        out << x.to_string() << '\n';
-        return out;
-    }
-
-    // Ostream operator
     friend std::istream &operator>>(std::istream &in, BigInt &x) {
         std::string temp;
         in >> temp;
         x = BigInt(temp);
         return in;
+    }
+
+    // Ostream operator
+    friend std::ostream &operator<<(std::ostream &out, BigInt x) {
+        out << x.to_string();
+        return out;
+        if (x.default_bit) out << '-' << -x;
+        else {
+            if (x.data.size() == 1) out << x.data[0];
+            else {
+                size_t m = (size_t(double(x.size()) / log2(10) + 1) + 1) >> 1;
+                std::pair<BigInt, BigInt> div_res = x.divide(ten_exp(m));
+                if (out.width()) out.width(out.width() - m);
+                out << std::setfill('0') << div_res.first << std::setw(m) << div_res.second;
+            }
+        }
+        return out;
     }
 
     // Flip all bits
