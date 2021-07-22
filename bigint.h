@@ -219,8 +219,6 @@ class BigInt {
 
     // Ostream operator
     friend std::ostream &operator<<(std::ostream &out, BigInt x) {
-        out << x.to_string();
-        return out;
         if (x.default_bit) out << '-' << -x;
         else {
             if (x.data.size() == 1) out << x.data[0];
