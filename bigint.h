@@ -101,16 +101,25 @@ class BigInt {
         return res;
     }
 
+    // Braindead binary long division
     std::pair<BigInt, BigInt> divide(BigInt x) {
         BigInt old = *this;
         BigInt res(0), temp(1);
         bool is_neg = (default_bit != x.default_bit);
         if (default_bit) *this = operator-();
         if (x.default_bit) x = -x;
+
+        if (size() > x.size()) {
+            size_t shift = size() - x.size();
+            x <<= shift;
+            temp <<= shift;
+        }
+
         while (operator>=(x)) {
             x <<= 1;
             temp <<= 1;
         }
+
         while (temp > BigInt(1)) {
             x >>= 1;
             temp >>= 1;
@@ -119,6 +128,7 @@ class BigInt {
                 res |= temp;
             }
         }
+
         BigInt curr = *this;
         if (is_neg) res = -res;
         if (old.default_bit) curr = -curr;
