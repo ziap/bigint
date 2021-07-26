@@ -156,7 +156,7 @@ class BigInt {
         size_t shift = x;
         BigInt five(5), res(1);
         while (x) {
-            if (x & 1) res = res * five;
+            if (x & 1) res *= five;
             five *= five;
             x >>= 1;
         }
@@ -554,6 +554,7 @@ class BigInt {
     }
 };
 
+// User defined literal example: "500"_N
 BigInt operator""_N(const char *x, size_t size) { return BigInt(std::string(x)); }
 
 #endif
