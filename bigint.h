@@ -25,6 +25,7 @@
 #define BIGINT_H
 #include <algorithm>
 #include <bitset>
+#include <cassert>
 #include <cctype>
 #include <cmath>
 #include <cstdio>
@@ -48,8 +49,9 @@ class BigInt {
         if (data.size() <= 0) { data = {full_chunk * default_bit}; }
     }
 
-    // Single digit multiplication (x must be unsigned)
+    // Single digit multiplication
     static BigInt multiply(BigInt x, word_t y) {
+        assert(!x.default_bit); // x must be non-negative
         if (y == 0) return 0;
         word_t carry = 0;
         for (word_t &i : x.data) {
@@ -109,23 +111,57 @@ class BigInt {
         if (default_bit) *this = operator-();
         if (x.default_bit) x = -x;
 
-        if (size() > x.size()) {
-            size_t shift = size() - x.size();
-            x <<= shift;
-            temp <<= shift;
-        }
+        if (x.data.size() == 1) {  // Single digit division, might improve speed
+            if (data.size() == 1) {
+                res.data = {data[0] / x.data[0]};
+                data = {data[0] % x.data[0]};
+            } else {
+                __uint128_t dividend = data.back();
+                data.pop_back();
 
-        while (operator>=(x)) {
-            x <<= 1;
-            temp <<= 1;
-        }
+                if (dividend < x.data[0]) {
+                    dividend <<= 64;
+                    dividend |= data.back();
+                    data.pop_back();
+                }
 
-        while (temp > BigInt(1)) {
-            x >>= 1;
-            temp >>= 1;
-            if (operator>=(x)) {
-                operator-=(x);
-                res |= temp;
+                res.data = {};
+                res.data.reserve(data.size());
+
+                while (data.size()) {
+                    dividend <<= 64;
+                    dividend |= data.back();
+                    data.pop_back();
+                    res.data[data.size()] = word_t(dividend / x.data[0]);
+                    dividend %= x.data[0];
+                }
+
+                if (dividend > x.data[0]) {
+                    res.data.insert(res.data.begin(), word_t(dividend / x.data[0]));
+                    dividend %= x.data[0];
+                }
+                res.trim();
+                data = {word_t(dividend)};
+            }
+        } else {
+            if (size() > x.size()) {
+                size_t shift = size() - x.size();
+                x <<= shift;
+                temp <<= shift;
+            }
+
+            while (operator>=(x)) {
+                x <<= 1;
+                temp <<= 1;
+            }
+
+            while (temp > BigInt(1)) {
+                x >>= 1;
+                temp >>= 1;
+                if (operator>=(x)) {
+                    operator-=(x);
+                    res |= temp;
+                }
             }
         }
 
@@ -188,14 +224,7 @@ class BigInt {
         if (is_neg) *this = operator-();
     }
 
-    // Copy-constructor
-    BigInt(const BigInt &x) {
-        default_bit = x.default_bit;
-        data = x.data;
-        trim();
-    }
-
-    // Destructor: compiler-generated
+    // Destructor, copy-constructor: compiler-generated
 
     // Convert to binary
     std::string to_binary() const {
