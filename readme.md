@@ -2,8 +2,9 @@
 
 <h3 align="center">A space efficient, arbitrary-sized integer library for C++</h3>
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Unit test](https://github.com/ziap/bigint/actions/workflows/main.yml/badge.svg)](https://github.com/ziap/bigint/actions/workflows/main.yml)
+[![License: MIT](https://img.shields.io/github/license/ziap/BigInt?style=for-the-badge)](LICENSE)
+[![Unit test](https://img.shields.io/github/workflow/status/ziap/bigint/Unit%20test?label=Unit%20test&logo=GitHub&style=for-the-badge)](https://github.com/ziap/bigint/actions/workflows/main.yml)
+![Total lines](https://img.shields.io/tokei/lines/github/ziap/bigint?logo=GitHub&style=for-the-badge)
 
 ## Features
 
