@@ -273,12 +273,10 @@ class BigInt {
 
     // Flip all bits
     BigInt operator~() {
-        BigInt old = *this;
-        for (word_t &i : data) { i = ~i; }
-        default_bit = !default_bit;
-        BigInt temp = *this;
-        *this = old;
-        return temp;
+        BigInt res = *this;
+        for (word_t &i : res.data) { i = ~i; }
+        res.default_bit = !res.default_bit;
+        return res;
     }
 
     BigInt operator&=(BigInt x) {
@@ -349,43 +347,33 @@ class BigInt {
     }
 
     BigInt operator&(BigInt x) {
-        BigInt old = *this;
-        operator&=(x);
-        BigInt temp = *this;
-        *this = old;
-        return temp;
+        BigInt res = *this;
+        res &= x;
+        return res;
     }
 
     BigInt operator|(BigInt x) {
-        BigInt old = *this;
-        operator|=(x);
-        BigInt temp = *this;
-        *this = old;
-        return temp;
+        BigInt res = *this;
+        res |= x;
+        return res;
     }
 
     BigInt operator^(BigInt x) {
-        BigInt old = *this;
-        operator^=(x);
-        BigInt temp = *this;
-        *this = old;
-        return temp;
+        BigInt res = *this;
+        res ^= x;
+        return res;
     }
 
     BigInt operator<<(size_t x) {
-        BigInt old = *this;
-        operator<<=(x);
-        BigInt temp = *this;
-        *this = old;
-        return temp;
+        BigInt res = *this;
+        res <<= x;
+        return res;
     }
 
     BigInt operator>>(size_t x) {
-        BigInt old = *this;
-        operator>>=(x);
-        BigInt temp = *this;
-        *this = old;
-        return temp;
+        BigInt res = *this;
+        res >>= x;
+        return res;
     }
 
     bool operator<(BigInt x) {
@@ -420,12 +408,10 @@ class BigInt {
     // Two's complement representation
     BigInt operator-() {
         if (operator==(0)) return *this;
-        BigInt old = *this;
-        *this = operator~();
-        operator++();
-        BigInt temp = *this;
-        *this = old;
-        return temp;
+        BigInt res = *this;
+        res = ~res;
+        res++;
+        return res;
     }
 
     BigInt operator+=(BigInt x) {
@@ -470,11 +456,9 @@ class BigInt {
     }
 
     BigInt operator+(BigInt x) {
-        BigInt old = *this;
-        operator+=(x);
-        BigInt temp = *this;
-        *this = old;
-        return temp;
+        BigInt res = *this;
+        res += x;
+        return res;
     }
 
     BigInt operator-=(BigInt x) {
@@ -523,11 +507,9 @@ class BigInt {
     }
 
     BigInt operator-(BigInt x) {
-        BigInt old = *this;
-        operator-=(x);
-        BigInt temp = *this;
-        *this = old;
-        return temp;
+        BigInt res = *this;
+        res -= x;
+        return res;
     }
 
     BigInt operator*=(BigInt x) { return operator=(operator*(x)); }
